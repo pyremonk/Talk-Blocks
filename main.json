@@ -1,0 +1,99 @@
+{
+    "title": "main",
+    "blocks": {
+        "Engineering": {
+            "text": [
+                {
+                    "portrait": "Engineering_Serious",
+                    "dialogue": "Yes, Captain?"
+                },
+                {
+                    "portrait": "Engineering_Happy",
+                    "dialogue": "How can I be of service?"
+                }
+            ],
+            "choices": [
+                {
+                    "option": "Set shields to maximum power!",
+                    "ifConditions": [ "shieldsAvailable" ],
+                    "ifNotConditions": [ "shieldsAtMax"],
+                    "set": [ "shieldsAtMax" ],
+                    "nextBlock": "EngineeringShieldsAtMax"
+                },
+                {
+                    "option": "Nothing at the moment.",
+                    "nextBlock": "EngineeringYesCap"
+                }
+            ]
+        },
+        "EngineeringYesCap": {
+            "text": [
+                {
+                    "portrait": "Engineering_Serious",
+                    "dialogue": "Yes, Captain!"
+                }
+            ]
+        },
+        "EngineeringShieldsAtMax": {
+            "text": [
+                {
+                    "portrait": "Engineering_Serious",
+                    "dialogue": "Shields at maximum power, Captain!"
+                }
+            ]
+        },
+        "FirstOfficer": {
+            "text": [
+                {
+                    "portrait": "FirstOfficer_Serious",
+                    "dialogue": "I think we have a problem."
+                },
+                {
+                    "portrait": "FirstOfficer_Serious",
+                    "dialogue": "We can't get a good reading on our sensors.",
+                    "ifConditions": ["sensorsBad"],
+                    "nextBlock": "FirstOfficer_Problems"
+                },
+                {
+                    "portrait": "FirstOfficer_Serious",
+                    "dialogue": "Actually, nevermind...",
+                    "nextBlock": "FirstOfficer_Nevermind"
+                }
+            ]
+        },
+        "FirstOfficer_Problems": {
+            "text": [
+                {
+                    "portrait": "FirstOfficer_Serious",
+                    "dialogue": "What would you like us to do?"
+                }
+            ],
+            "choices": [
+                {
+                    "option": "Check the sensors.",
+                    "set": [ "sensorsBad" ],
+                    "nextBlock": "FirstOfficer_SensorsBad"
+                },
+                {
+                    "option": "Let's just hold tight for now."
+                }
+            ]
+        },
+        "FirstOfficer_Nevermind": {
+            "text": [
+                {
+                    "portrait": "FirstOfficer_Happy",
+                    "dialogue": "It's all good!"
+                }
+            ]
+        },
+        "FirstOfficer_SensorsBad": {
+            "text": [
+                {
+                    "portrait": "FirstOfficer_Happy",
+                    "dialogue": "Our sensors are bad!"
+                }
+            ]
+        }
+    }
+}
