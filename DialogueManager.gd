@@ -1,9 +1,16 @@
 extends Node
 
+# TODO ITEMS
+# - Add ability to setNextBlock for the target object that started a dialogue?
+# - Update portraits
+# - Make panel a param so there is a base if not provided or use the one provided
+# - Make better choice buttons (have interface to provide an instance rather than create them on the fly)
+
 var story = {}
 var outputText = []
 var outputChoices = []
 var curOutputTextIndex = 0
+var curBlock
 var panel
 
 func _ready():
@@ -26,13 +33,15 @@ func start_dialogue(blockName): # TODO: Add option to provide target dialoguePan
 	
 	reset_dialogue()
 	
+	curBlock = blockName
+	
 	if get_block(blockName):
 		# If there is no dialogue in the outputText, we will check if there are choices to display
 		if !outputText.empty():
 			# Display dialogue panel
 			panel.show()
 			# Display first line of dialogue in the current text index
-			display_dialogue(outputText[curOutputTextIndex]["dialogue"])
+			display_dialogue()
 		else:
 			# If there are no choices,  close out the dialogue stream
 			if !outputChoices.empty():
@@ -43,9 +52,15 @@ func start_dialogue(blockName): # TODO: Add option to provide target dialoguePan
 		print("Block " + blockName + " not found.")
 
 # TODO Update in the future to provide panel as param
-func display_dialogue(text):
+func display_dialogue():
+	# Check for title and set
+	if outputText[curOutputTextIndex].has("title"):
+		panel.get_node("Title").text = outputText[curOutputTextIndex]["title"]
+	else:
+		panel.get_node("Title").text = ""
+	
 	# Set text of dialogue panel using curOutputTextIndex
-	panel.get_node("Text").text = text
+	panel.get_node("Text").text = outputText[curOutputTextIndex]["dialogue"]
 	panel.get_node("ContinueButton").show()
 
 func continue_dialogue():
@@ -66,7 +81,7 @@ func continue_dialogue():
 		
 		# set next text using curOutputTextIndex
 		# show continuebutton (kinda hokey)
-		display_dialogue(outputText[curOutputTextIndex]["dialogue"])
+		display_dialogue()
 	# elif the this the last dialogue (curOutputTextIndex + 1 = text.size()) & there are choices
 	elif (curOutputTextIndex + 1) == outputText.size() && !outputChoices.empty():
 		panel.get_node("ContinueButton").show()
@@ -83,12 +98,11 @@ func display_choices():
 	# loop through choices and create buttons with a name plus the choice index
 	# connect the buttons to _on_button_pressed here
 	for i in outputChoices.size():
-		print(outputChoices[i]["option"])
 		
 		var choiceButton = Button.new()
 		choiceButton.set_name("ChoiceButton" + str(i))
 		panel.add_child(choiceButton)
-		choiceButton.rect_position = Vector2(575, 10 + 75 * i)
+		choiceButton.rect_position = Vector2(450, 10 + 75 * i)
 		choiceButton.rect_size = Vector2(200, 50)
 		choiceButton.connect("pressed", self, "choice_selected", [choiceButton])
 		
@@ -125,7 +139,7 @@ func set_flags(flags):
 			# check if var is already set, if not, set it
 			if !$"/root/Global/".storyFlags.has(flags[i]):
 				$"/root/Global/".storyFlags.append(flags[i])
-				print("Set: " + flags[i] + " in storyFlags")
+				print("[" + curBlock + "] Set: " + flags[i] + " in storyFlags")
 
 func end_dialogue():
 	reset_dialogue()
@@ -172,10 +186,10 @@ func get_block_text(blockName):
 					var conditionName = text[i]["ifConditions"][ifConditionIndex]
 					
 					if $"/root/Global".storyFlags.find(conditionName) == -1 :
-						print("ifCondition: '" + conditionName + "' not met.")
+						print("[" + curBlock + "] Text ifCondition: '" + conditionName + "' not met.")
 						conditionsMet = false
 					else:
-						print("ifCondition: '" + conditionName + "' was met.")
+						print("[" + curBlock + "] Text ifCondition: '" + conditionName + "' was met.")
 			
 			# Check if the text has ifNotConditions
 			if conditionsMet && text[i].has("ifNotConditions"):
@@ -186,10 +200,10 @@ func get_block_text(blockName):
 					var conditionName = text[i]["ifNotConditions"][ifNotConditionIndex]
 					
 					if $"/root/Global/".storyFlags.find(conditionName) >= 0:
-						print("ifNotCondition: '" + conditionName + "' not met.")
+						print("[" + curBlock + "] Text ifNotCondition: '" + conditionName + "' not met.")
 						conditionsMet = false
 					else:
-						print("ifNotCondition: '" + conditionName + "' was met.")
+						print("[" + curBlock + "] Text ifNotCondition: '" + conditionName + "' was met.")
 			
 			# Add text to outputText array
 			if conditionsMet:
@@ -225,10 +239,10 @@ func get_block_choices(blockName):
 					var conditionName = choices[i]["ifConditions"][ifConditionIndex]
 					
 					if $"/root/Global".storyFlags.find(conditionName) == -1 :
-						print("ifCondition: '" + conditionName + "' not met.")
+						print("[" + curBlock + "] Choice ifCondition: '" + conditionName + "' not met.")
 						conditionsMet = false
 					else:
-						print("ifCondition: '" + conditionName + "' was met.")
+						print("[" + curBlock + "] Choice ifCondition: '" + conditionName + "' was met.")
 			
 			# Check if the choices has ifNotConditions
 			if conditionsMet && choices[i].has("ifNotConditions"):
@@ -239,10 +253,10 @@ func get_block_choices(blockName):
 					var conditionName = choices[i]["ifNotConditions"][ifNotConditionIndex]
 					
 					if $"/root/Global/".storyFlags.find(conditionName) >= 0:
-						print("ifNotCondition: '" + conditionName + "' not met.")
+						print("[" + curBlock + "] Choice ifNotCondition: '" + conditionName + "' not met.")
 						conditionsMet = false
 					else:
-						print("ifNotCondition: '" + conditionName + "' was met.")
+						print("[" + curBlock + "] Choice ifNotCondition: '" + conditionName + "' was met.")
 			
 			# Add text to outputText array
 			if conditionsMet:
