@@ -20,9 +20,6 @@ func _ready():
 	panel = get_node("/root/Game/DialogueUI/Panel")
 	
 	panel.get_node("ContinueButton").connect("pressed", self, "continue_dialogue")
-	
-	# DEBUG
-	start_dialogue("Engineering")
 
 # Starts dialogue from a given block in the story dictionary
 func start_dialogue(blockName): # TODO: Add option to provide target dialoguePanel
@@ -35,7 +32,7 @@ func start_dialogue(blockName): # TODO: Add option to provide target dialoguePan
 			# Display dialogue panel
 			panel.show()
 			# Display first line of dialogue in the current text index
-			display_dialogue()
+			display_dialogue(outputText[curOutputTextIndex]["dialogue"])
 		else:
 			# If there are no choices,  close out the dialogue stream
 			if !outputChoices.empty():
@@ -45,47 +42,90 @@ func start_dialogue(blockName): # TODO: Add option to provide target dialoguePan
 	else:
 		print("Block " + blockName + " not found.")
 
-# TODO Update in the future to provide panel and text as params
-func display_dialogue():
+# TODO Update in the future to provide panel as param
+func display_dialogue(text):
 	# Set text of dialogue panel using curOutputTextIndex
-	panel.get_node("Text").text = outputText[curOutputTextIndex]["dialogue"]
+	panel.get_node("Text").text = text
+	panel.get_node("ContinueButton").show()
 
 func continue_dialogue():
 	# check if the dialogue has a set
+	if outputText[curOutputTextIndex].has("set"):
 		# if so, set the flag in storyFlag var
+		set_flags(outputText[curOutputTextIndex]["set"])
 	
 	# check if the dialogue has a nextBlock
-		# set nextDialogueBlock to nextBlock
-		# if so clear_dialogue() and start_dialogue(nextDialogueBlock)
-		# pass/return
+	if outputText[curOutputTextIndex].has("nextBlock"):
+		start_dialogue(outputText[curOutputTextIndex]["nextBlock"])
+		return
 	
 	# check if there is more dialogue to display (curOutputTextIndex + 1 < text.size())
+	if (curOutputTextIndex + 1) < outputText.size():
 		# if so, increment curOutputTextIndex
-		# clear current text, hide continuebutton
+		curOutputTextIndex += 1
+		
 		# set next text using curOutputTextIndex
 		# show continuebutton (kinda hokey)
+		display_dialogue(outputText[curOutputTextIndex]["dialogue"])
 	# elif the this the last dialogue (curOutputTextIndex + 1 = text.size()) & there are choices
-		# hide continuebutton
-		# display_choices()
-	# elif this is the last dialogue
-		# end_dialogue()
-	pass
+	elif (curOutputTextIndex + 1) == outputText.size() && !outputChoices.empty():
+		panel.get_node("ContinueButton").show()
+		display_choices()
+	# else this is the last dialogue
+	else:
+		end_dialogue()
 
 # I see only FOUR CHOICES!
 func display_choices():
+	
+	panel.get_node("ContinueButton").hide()
+	
 	# loop through choices and create buttons with a name plus the choice index
 	# connect the buttons to _on_button_pressed here
-	pass
+	for i in outputChoices.size():
+		print(outputChoices[i]["option"])
+		
+		var choiceButton = Button.new()
+		choiceButton.set_name("ChoiceButton" + str(i))
+		panel.add_child(choiceButton)
+		choiceButton.rect_position = Vector2(575, 10 + 75 * i)
+		choiceButton.rect_size = Vector2(200, 50)
+		choiceButton.connect("pressed", self, "choice_selected", [choiceButton])
+		
+		var choiceLabel = Label.new()
+		choiceLabel.set_name("ChoiceLabel" + str(i))
+		panel.get_node("ChoiceButton" + str(i)).add_child(choiceLabel)
+		choiceLabel.rect_position = Vector2(10, 10)
+		choiceLabel.rect_size = Vector2(200, 50)
+		choiceLabel.autowrap = true
+		choiceLabel.text = outputChoices[i]["option"]
 
-func choice_selected():
+func choice_selected(choiceButton):
 	# figure out what choice was selected by getting the name of the button pressed and converting using int()
+	var choiceIndex = int(choiceButton.name)
+	
 	# check if choice has a set
+	if outputChoices[choiceIndex].has("set"):
 		# set the variable in the storyFlags global
+		set_flags(outputChoices[choiceIndex]["set"])
+	
+	# clear choices
+	for i in outputChoices.size():
+		#panel.get_node("ChoiceButton" + str(i)).set_hidden(false)
+		panel.get_node("ChoiceButton" + str(i)).queue_free()
+	
 	# check for nextBlock
-		# start_dialogue(nextBlock)
-	# else
-		# end_dialogue()
-	pass 
+	if outputChoices[choiceIndex].has("nextBlock"):
+		start_dialogue(outputChoices[choiceIndex]["nextBlock"])
+	else:
+		end_dialogue() 
+
+func set_flags(flags):
+	for i in flags.size():
+			# check if var is already set, if not, set it
+			if !$"/root/Global/".storyFlags.has(flags[i]):
+				$"/root/Global/".storyFlags.append(flags[i])
+				print("Set: " + flags[i] + " in storyFlags")
 
 func end_dialogue():
 	reset_dialogue()

@@ -9,7 +9,8 @@
                 },
                 {
                     "portrait": "Engineering_Happy",
-                    "dialogue": "How can I be of service?"
+                    "dialogue": "How can I be of service?",
+                    "set": [ "shieldsAvailable" ]
                 }
             ],
             "choices": [
