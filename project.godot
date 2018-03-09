@@ -10,7 +10,7 @@ config_version=3
 
 [application]
 
-config/name="1-room-rpg-jam-2"
+config/name="Dialogue Manager for Godot"
 run/main_scene="res://Game.tscn"
 config/icon="res://icon.png"
 
@@ -20,8 +20,8 @@ Global="*res://Global.gd"
 
 [display]
 
-window/size/width=800
-window/size/height=450
+window/size/width=1280
+window/size/height=720
 
 [gdnative]
 
